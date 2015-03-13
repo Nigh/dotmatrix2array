@@ -1,5 +1,5 @@
 ﻿#NoEnv
-
+#Include gdip.ahk
 ; FileEncoding, UTF-8
 SetWorkingDir %A_ScriptDir%
 If !pToken := Gdip_Startup()
@@ -46,7 +46,7 @@ Gui, 1:Submit
 
 ToolTip, 正在生成...
 
-pBrush1 := Gdip_BrushCreateSolid(0xFF333033)
+pBrush1 := Gdip_BrushCreateSolid(0xFF77dd88)
 pBrush2 := Gdip_BrushCreateSolid(0xFFdddddd)
 pBitmap1 := Gdip_CreateBitmap(w, h), G1 := Gdip_GraphicsFromImage(pBitmap1), Gdip_SetSmoothingMode(G1, 1)
 pBitmap2 := Gdip_CreateBitmap(w, h), G2 := Gdip_GraphicsFromImage(pBitmap2), Gdip_SetSmoothingMode(G2, 1)
@@ -77,19 +77,24 @@ Loop, % wn
 }
 
 Gui, Add,Text, xm Section, 起始位置：
-Gui, Add,Radio,Group vr1 Checked gsubmit, 左上
-Gui, Add,Radio,x+0 vr2 gsubmit, 右上
-Gui, Add,Radio,xs vr3 gsubmit, 左下
-Gui, Add,Radio,x+0 vr4 gsubmit, 右下
+Gui, Add,Radio,Group vr1 r1.2 Checked gsubmit, 左上
+Gui, Add,Radio,x+0 vr2 r1.2 gsubmit, 右上
+Gui, Add,Radio,xs vr3 r1.2 gsubmit, 左下
+Gui, Add,Radio,x+0 vr4 r1.2 gsubmit, 右下
 
 Gui, Add,Text,ys Section, 方向：
-Gui, Add,Radio,Group vrx Checked gsubmit, 横向
-Gui, Add,Radio,vry gsubmit, 纵向
+Gui, Add,Radio,Group vrx r1.2 Checked gsubmit, 横向
+Gui, Add,Radio,vry r1.2 gsubmit, 纵向
 
 Gui, Add,Text,ys Section, 位顺序：
-Gui, Add,Radio,Group vlsb Checked gsubmit, 低位在前
-Gui, Add,Radio, vmsb gsubmit, 高位在前
-Gui, Add,Button, r3 ys gclear, 清空
+Gui, Add,Radio,Group vlsb r1.2 Checked gsubmit, 低位在前
+Gui, Add,Radio, vmsb r1.2 gsubmit, 高位在前
+Gui, Add,Button, r3 ys w50 gclear, 清空
+
+Gui, Add,Checkbox,visTranspose gtranspose r1.2 xm, 转置
+Gui, Add,Text, x+10, 透明度：
+Gui, Add,Slider, x+0 w200 gchangeTrans vtransValue hwndhSlider, 0
+
 _editwidth:=(w+mx)*(wn)-mx < 230 ? 230 : (w+mx)*(wn)-mx
 Gui, Add, Edit, % "ReadOnly R" (wn+3>16?16:wn+3) " x" w " w" _editwidth " voutput"
 Gui, Show, AutoSize
@@ -99,7 +104,9 @@ ToolTip
 SetFormat, Integer, hex
 
 OnMessage(0x200,"onMousemove")
-; WinSet, Transparent, 200, ahk_id %gui2%
+OnMessage(0x201,"onMouseDown")
+OnMessage(0x202,"onMouseUp")
+; WinSet, Transparent, 220, ahk_id %gui2%
 Return
 
 onMousemove()
@@ -115,10 +122,38 @@ onMousemove()
 	}
 }
 
+onMouseDown(wp,lp,msg,hwnd)
+{
+	global
+	; ToolTip, % hwnd
+	if(hwnd=hSlider){
+		SetTimer, changeTrans, 25
+	}
+}
+
+onMouseUp(wp,lp,msg,hwnd)
+{
+	global
+	SetTimer, changeTrans, Off
+}
+
 
 
 submit:
 Gui, 2:Submit, NoHide
+Gosub, output
+Return
+
+changeTrans:
+gui, 2:Submit, NoHide
+TransparentV:=255-(transValue)*2.3
+if(TransparentV<30)
+	TransparentV:=30
+WinSet, Transparent, %TransparentV%, ahk_id %gui2%
+Return
+
+transpose:
+gui, 2:Submit, NoHide
 Gosub, output
 Return
 
@@ -255,28 +290,54 @@ Loop, % hnR
 	}
 }
 
-outputs:="array[" y_max "][" x_max "]=`n{`n"
-Loop, % y_max
+if(!isTranspose)
 {
-	y_out:=A_Index
-	outputs.="`t{"
+	outputs:="array[" y_max "][" x_max "]=`n{`n"
+	Loop, % y_max
+	{
+		y_out:=A_Index
+		outputs.="`t{"
+		Loop, % x_max
+		{
+			if(A_Index>1)
+				outputs.=","
+			If(msb)
+				outputs.=formatHex(invhex(o_output[A_Index,y_out,"statu"]))
+			Else
+				outputs.=formatHex(o_output[A_Index,y_out,"statu"])
+		}
+
+		outputs.="}"
+		if(A_Index<y_max)
+			outputs.=","
+		outputs.="`n"
+	}
+	outputs.="}"
+}
+Else
+{
+	outputs:="array[" x_max "][" y_max "]=`n{`n"
 	Loop, % x_max
 	{
-		if(A_Index>1)
+		x_out:=A_Index
+		outputs.="`t{"
+		Loop, % y_max
+		{
+			if(A_Index>1)
+				outputs.=","
+			If(msb)
+				outputs.=formatHex(invhex(o_output[x_out,A_Index,"statu"]))
+			Else
+				outputs.=formatHex(o_output[x_out,A_Index,"statu"])
+		}
+
+		outputs.="}"
+		if(A_Index<x_max)
 			outputs.=","
-		If(msb)
-			outputs.=formatHex(invhex(o_output[A_Index,y_out,"statu"]))
-		Else
-			outputs.=formatHex(o_output[A_Index,y_out,"statu"])
+		outputs.="`n"
 	}
-
 	outputs.="}"
-	if(A_Index<y_max)
-		outputs.=","
-	outputs.="`n"
 }
-outputs.="}"
-
 SetFormat, Integer, dec
 GuiControl,2:, output, %outputs%
 Return
