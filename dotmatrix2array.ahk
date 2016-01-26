@@ -1,4 +1,5 @@
-﻿#NoEnv
+﻿
+#NoEnv
 #Include gdip.ahk
 ; FileEncoding, UTF-8
 SetWorkingDir %A_ScriptDir%
@@ -100,13 +101,11 @@ Gui, Add, Edit, % "ReadOnly R" (wn+3>16?16:wn+3) " x" w " w" _editwidth " voutpu
 Gui, Show, AutoSize
 Gui, Submit, NoHide
 ToolTip
-;~ MsgBox, % (w+mx)*(wn+2)-mx
 SetFormat, Integer, hex
 
 OnMessage(0x200,"onMousemove")
 OnMessage(0x201,"onMouseDown")
 OnMessage(0x202,"onMouseUp")
-; WinSet, Transparent, 220, ahk_id %gui2%
 Return
 
 onMousemove()
@@ -168,7 +167,6 @@ Loop, % wn
 		SetImage(harray[x_index,y_index,"hwnd"], hBitmap2)
 	}
 }
-
 Goto output
 
 dotclickEx:
@@ -258,7 +256,6 @@ Else	;If(rx)
 		Gosub, invXAxis
 	}
 }
-
 o_output:=Object()
 x_out:=1
 y_out:=1
@@ -269,7 +266,6 @@ Loop, % hnR
 {
 	y_index:=A_Index
 	hex:=0
-	
 	Loop, % wnR
 	{
 		x_index:=A_Index
@@ -306,7 +302,6 @@ if(!isTranspose)
 			Else
 				outputs.=formatHex(o_output[A_Index,y_out,"statu"])
 		}
-
 		outputs.="}"
 		if(A_Index<y_max)
 			outputs.=","
@@ -349,13 +344,13 @@ ObjClone(object,x,y)
 	Loop, % y
 	{
 		iy:=A_Index
-	Loop, % x
-	{
-		ix:=A_Index
-		obj[ix,iy,"statu"]:=object[ix,iy,"statu"]
+		Loop, % x
+		{
+			ix:=A_Index
+			obj[ix,iy,"statu"]:=object[ix,iy,"statu"]
+		}
 	}
-}
-Return, obj
+	Return, obj
 }
 
 
@@ -366,14 +361,13 @@ debugx(object,x,y)
 	Loop, % y
 	{
 		iy:=A_Index
-	Loop, % x
-	{
-		ix:=A_Index
-	output.=object[ix,iy,"statu"] " "
-}
-output.="`n"
-}
-
+		Loop, % x
+		{
+			ix:=A_Index
+			output.=object[ix,iy,"statu"] " "
+		}
+		output.="`n"
+	}
 	If(formatOld="H")
 	SetFormat, Integer, hex
 	Return, output
@@ -409,11 +403,6 @@ WinGetPos, gui2X, gui2Y, gui2W, , ahk_id %gui2%
 WinMove, ahk_id %gui3%,, % gui2X+gui2W , % gui2Y
 Return
 
-bin2hex(bin)
-{
-	Return, eval("$x '0" bin)
-}
-
 formathex(hex)
 {
 	Return, "0x" SubStr("000" SubStr(hex,3),-1)
@@ -421,7 +410,6 @@ formathex(hex)
 
 invhex(hex)
 {
-	
 	nhex:=0
 	SetFormat, Integer, H
 	Loop, 8
@@ -438,7 +426,7 @@ invhex(hex)
 	Return, nhex+0
 }
 
-F5::
+; F5::
 GuiClose:
 1GuiClose:
 2GuiClose:
