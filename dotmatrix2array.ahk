@@ -20,10 +20,10 @@ Gui, Add ,Text, xs y+15 ,像素点宽：
 Gui, Add ,Text, xs y+15,像素点高：
 Gui, Add ,Text, xs y+15,x 间隔：
 Gui, Add ,Text, xs y+15,y 间隔：
-Gui, Add,Edit, Number Section w120 x+5 ys R1 +BackgroundTrans vwn,12
-Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vhn,10
-Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vw,20
-Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vh,20
+Gui, Add,Edit, Number Section w120 x+5 ys R1 +BackgroundTrans vwn,32
+Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vhn,32
+Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vw,10
+Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vh,10
 Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vmx,1
 Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vmy,1
 Gui, Add,Button, xm w180 r4 gcreate,生成
@@ -41,22 +41,29 @@ Return
 ;~ Gdip_FillRoundedRectangle(G, pBrushFront, 4, 4, (Posw-8)*(Percentage/100), Posh-8, (Percentage >= 3) ? 3 : Percentage)
 ;~ Gdip_DeleteBrush(pBrushFront), Gdip_DeleteBrush(pBrushBack)
 ;~ Gdip_DeleteGraphics(G), Gdip_DisposeImage(pBitmap)
+; DeleteObject(hBitmap)
+; Gdip_SetPixel(pBitmap, x, y, ARGB)
 
 create:
 Gui, 1:Submit
 
 ToolTip, 正在生成...
 
-pBrush1 := Gdip_BrushCreateSolid(0xFF77dd88)
-pBrush2 := Gdip_BrushCreateSolid(0xFFdddddd)
+
+
+pBrush1 := Gdip_BrushCreateSolid(0xFF77AAFF)
+pBrush2 := Gdip_BrushCreateSolid(0xFF333432)
 pBitmap1 := Gdip_CreateBitmap(w, h), G1 := Gdip_GraphicsFromImage(pBitmap1), Gdip_SetSmoothingMode(G1, 1)
 pBitmap2 := Gdip_CreateBitmap(w, h), G2 := Gdip_GraphicsFromImage(pBitmap2), Gdip_SetSmoothingMode(G2, 1)
 Gdip_FillRectangle(G1, pBrush1, 0, 0, w, h)
 Gdip_FillRectangle(G2, pBrush2, 0, 0, w, h)
 hBitmap1 := Gdip_CreateHBITMAPFromBitmap(pBitmap1)
 hBitmap2 := Gdip_CreateHBITMAPFromBitmap(pBitmap2)
-Gdip_DeleteBrush(pBrush1)
-Gdip_DeleteBrush(pBrush2)
+
+pBitmap_Ex := Gdip_CreateBitmap(wn, hn), G_Ex := Gdip_GraphicsFromImage(pBitmap_Ex), Gdip_SetSmoothingMode(G_Ex, 1)
+Gdip_FillRectangle(G_Ex, pBrush2, 0, 0, wn, hn)
+; Gdip_DeleteBrush(pBrush1)
+; Gdip_DeleteBrush(pBrush2)
 
 Gui, 2:Default
 Gui, +hwndgui2 +AlwaysOnTop
@@ -96,6 +103,8 @@ Gui, Add,Checkbox,visTranspose gtranspose r1.2 xm, 转置
 Gui, Add,Text, x+10, 透明度：
 Gui, Add,Slider, x+0 w200 gchangeTrans vtransValue hwndhSlider, 0
 
+Gui, Add, Pic, w%wn% h%hn% hwndbitmap 0xe,X
+
 _editwidth:=(w+mx)*(wn)-mx < 230 ? 230 : (w+mx)*(wn)-mx
 Gui, Add, Edit, % "ReadOnly R" (wn+3>16?16:wn+3) " x" w " w" _editwidth " voutput"
 Gui, Show, AutoSize
@@ -107,6 +116,13 @@ OnMessage(0x200,"onMousemove")
 OnMessage(0x201,"onMouseDown")
 OnMessage(0x202,"onMouseUp")
 Return
+
+SetImage_simple(byref pBitmap,handle)
+{
+	hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
+	SetImage(handle, hBitmap)
+	DeleteObject(hBitmap)
+}
 
 onMousemove()
 {
@@ -167,6 +183,8 @@ Loop, % wn
 		SetImage(harray[x_index,y_index,"hwnd"], hBitmap2)
 	}
 }
+Gdip_FillRectangle(G_Ex, pBrush2, 0, 0, wn, hn)
+SetImage_simple(pBitmap_Ex,bitmap)
 Goto output
 
 dotclickEx:
@@ -174,7 +192,6 @@ isMouseMove:=1
 dotclick:
 MouseGetPos,,,,handler,2
 oldHandler:=handler
-
 Loop, % wn
 {
 	x_index:=A_Index
@@ -193,13 +210,20 @@ Loop, % wn
 				oldAction:=harray[x_index,y_index,"statu"]
 			}
 			If(harray[x_index,y_index,"statu"]=1)
+			{
 				SetImage(handler, hBitmap1)
+				Gdip_SetPixel(pBitmap_Ex, x_index, y_index, 0xFF77AAFF)
+			}
 			Else
+			{
 				SetImage(handler, hBitmap2)
+				Gdip_SetPixel(pBitmap_Ex, x_index, y_index, 0xFF333432)
+			}
 			Break 2
 		}
 	}
 }
+SetImage_simple(pBitmap_Ex,bitmap)
 isMouseMove:=0
 
 output:
