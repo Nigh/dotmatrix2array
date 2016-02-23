@@ -20,16 +20,19 @@ Gui, Add ,Text, xs y+15 ,像素点宽：
 Gui, Add ,Text, xs y+15,像素点高：
 Gui, Add ,Text, xs y+15,x 间隔：
 Gui, Add ,Text, xs y+15,y 间隔：
-Gui, Add,Edit, Number Section w120 x+5 ys R1 +BackgroundTrans vwn,12
-Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vhn,10
-Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vw,20
-Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vh,20
+Gui, Add,Edit, Number Section w120 x+5 ys R1 +BackgroundTrans vwn,16
+Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vhn,16
+Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vw,10
+Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vh,10
 Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vmx,1
 Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vmy,1
 Gui, Add,Button, xm w180 r4 gcreate,生成
-Gui, Add,Text, Right r2,script by:Nigh`njiyucheng007@gmail.com
+Gui, Add,Text, Right r2 c0000bb gaboutme, jiyucheng007@gmail.com
 Gui, Show, AutoSize
+Return
 
+aboutme:
+run, http://code-moe.cc
 Return
 
 ;~ hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
@@ -41,6 +44,8 @@ Return
 ;~ Gdip_FillRoundedRectangle(G, pBrushFront, 4, 4, (Posw-8)*(Percentage/100), Posh-8, (Percentage >= 3) ? 3 : Percentage)
 ;~ Gdip_DeleteBrush(pBrushFront), Gdip_DeleteBrush(pBrushBack)
 ;~ Gdip_DeleteGraphics(G), Gdip_DisposeImage(pBitmap)
+; DeleteObject(hBitmap)
+; Gdip_SetPixel(pBitmap, x, y, ARGB)
 
 create:
 Gui, 1:Submit
@@ -77,6 +82,7 @@ Loop, % wn
 	}
 }
 
+Gui, Add,Text,xm, Width:%wn%    Height:%hn%
 Gui, Add,Text, xm Section, 起始位置：
 Gui, Add,Radio,Group vr1 r1.2 Checked gsubmit, 左上
 Gui, Add,Radio,x+0 vr2 r1.2 gsubmit, 右上
@@ -96,7 +102,7 @@ Gui, Add,Checkbox,visTranspose gtranspose r1.2 xm, 转置
 Gui, Add,Text, x+10, 透明度：
 Gui, Add,Slider, x+0 w200 gchangeTrans vtransValue hwndhSlider, 0
 
-_editwidth:=(w+mx)*(wn)-mx < 230 ? 230 : (w+mx)*(wn)-mx
+_editwidth:=(w+mx)*(wn)-mx < 280 ? 280 : (w+mx)*(wn)-mx
 Gui, Add, Edit, % "ReadOnly R" (wn+3>16?16:wn+3) " x" w " w" _editwidth " voutput"
 Gui, Show, AutoSize
 Gui, Submit, NoHide
@@ -107,6 +113,9 @@ OnMessage(0x200,"onMousemove")
 OnMessage(0x201,"onMouseDown")
 OnMessage(0x202,"onMouseUp")
 Return
+
+2GuiClose:
+Reload
 
 onMousemove()
 {
@@ -288,7 +297,7 @@ Loop, % hnR
 
 if(!isTranspose)
 {
-	outputs:="array[" y_max "][" x_max "]=`n{`n"
+	outputs:="const unsigned char array[" y_max "][" x_max "]={`n"
 	Loop, % y_max
 	{
 		y_out:=A_Index
@@ -307,11 +316,10 @@ if(!isTranspose)
 			outputs.=","
 		outputs.="`n"
 	}
-	outputs.="}"
 }
 Else
 {
-	outputs:="array[" x_max "][" y_max "]=`n{`n"
+	outputs:="const unsigned char array[" x_max "][" y_max "]={`n"
 	Loop, % x_max
 	{
 		x_out:=A_Index
@@ -331,8 +339,8 @@ Else
 			outputs.=","
 		outputs.="`n"
 	}
-	outputs.="}"
 }
+outputs.="};`n"
 SetFormat, Integer, dec
 GuiControl,2:, output, %outputs%
 Return
@@ -429,6 +437,5 @@ invhex(hex)
 ; F5::
 GuiClose:
 1GuiClose:
-2GuiClose:
 Exit:
 ExitApp
