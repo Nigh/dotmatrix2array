@@ -27,12 +27,12 @@ Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vh,10
 Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vmx,1
 Gui, Add,Edit, Number xs R1 wp +BackgroundTrans vmy,1
 Gui, Add,Button, xm w180 r4 gcreate,生成
-Gui, Add,Text, Right r2 c0000bb gaboutme, jiyucheng007@gmail.com
+Gui, Add,Text, Right r1 c0000bb gaboutme, jiyucheng007@gmail.com
 Gui, Show, AutoSize
 Return
 
 aboutme:
-run, http://code-moe.cc
+run, https://nigh.github.io
 Return
 
 ;~ hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap)
