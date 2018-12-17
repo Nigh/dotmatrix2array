@@ -8,12 +8,13 @@
 
 ## AHK version
 
-Autohotkey version src:[AHK](.\ahk)
+Autohotkey version src:[AHK](./ahk)
 
-![](.\pic\ahk1.png)![](.\pic\ahk2.png)
+![a](pic/ahk1.png)
+![b](pic/ahk2.png)
 
 ## LOVE2D version
 
-LOVE2D version src:[LOVE2D](.\love2d)
+LOVE2D version src:[LOVE2D](./love2d)
 
 coming sooooooon......
