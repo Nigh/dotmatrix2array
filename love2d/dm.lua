@@ -20,9 +20,14 @@ function dm:new(w,h)
 		toggle=dm_toggle,
 		hit=dm_is_hit,
 		inframe=dm_is_inframe,
-		canvas=love.graphics.newCanvas(frame_w,frame_h),
+		setframesize=dm_setframesize,
+		getframesize=dm_getframesize,
+		setdrawsize=dm_setdrawsize,
+		dots=love.graphics.newCanvas(w,h),
 	}
+	dotmatrix.dots:setFilter( "nearest", "nearest" )
 	love.graphics.setPointSize( 1 )
+	love.graphics.setCanvas(dotmatrix.grid)
 	for i=1,h do
 		table.insert(dotmatrix,{})
 		for j=1,w do
@@ -32,49 +37,77 @@ function dm:new(w,h)
 	return dotmatrix
 end
 
-local function myStencilFunction()
-   love.graphics.rectangle("fill", 0, 0, frame_w, frame_h)
+function dm_setframesize(self,w,h)
+	frame_w,frame_h = w,h
 end
 
-function dm_draw(self,refresh)
-	local r, g, b, a = love.graphics.getColor()
-	if refresh then
-		love.graphics.push()
-		love.graphics.origin()
-		love.graphics.setCanvas({self.canvas, stencil=true})
-		love.graphics.clear()
-		for i=1,self.h do
-			for j=1,self.w do
-				if self[i][j]==true then
-					love.graphics.setColor(r, g, b, a)
-					love.graphics.rectangle("fill", (j-1)*self.size+self.cx, (i-1)*self.size+self.cy, self.size-self.gap, self.size-self.gap)
-				else
-					love.graphics.setColor(r, g, b, a/3)
-					love.graphics.rectangle("line", (j-1)*self.size+self.cx, (i-1)*self.size+self.cy, self.size-self.gap, self.size-self.gap)
-				end
+function dm_getframesize(self,w,h)
+	return frame_w,frame_h
+end
+
+function dm_setdrawsize(self,w,h)
+	self.w,self.h = w,h
+end
+
+local function myStencilFunction()
+	love.graphics.rectangle("fill", 0, 0, frame_w, frame_h)
+end
+
+function util_draw_dots(self)
+	local points = {}
+	for i=1,self.h do
+		for j=1,self.w do
+			if self[i][j]==true then
+				table.insert(points,j)
+				table.insert(points,i)
 			end
 		end
-		love.graphics.setCanvas()
-		love.graphics.pop()
 	end
+	love.graphics.points( points )
+end
+
+function util_draw_grid(self)
+	for i=1,self.h+1 do
+		love.graphics.line(0, (i-1)*self.size, self.size*self.w, (i-1)*self.size)
+	end
+	for i=1,self.w+1 do
+		love.graphics.line((i-1)*self.size, 0, (i-1)*self.size, self.size*self.h)
+	end
+end
+
+function dm_draw(self)
+	local r, g, b, a = love.graphics.getColor()
+
+	love.graphics.push()
+	love.graphics.origin()
+	love.graphics.setCanvas({self.dots, stencil=true})
+	love.graphics.clear()
+	util_draw_dots(self)
+	love.graphics.setCanvas()
+	love.graphics.pop()
 
 	love.graphics.stencil(myStencilFunction, "replace", 1)
 	love.graphics.setStencilTest("equal", 1)
 	love.graphics.setColor(r, g, b, a)
-	love.graphics.draw(self.canvas)
+
+	love.graphics.push()
+	love.graphics.scale(self.size)
+	love.graphics.translate(self.cx/self.size,self.cy/self.size)
+	love.graphics.draw(self.dots)
+	love.graphics.pop()
+
+	love.graphics.setColor(r, g, b, (a*self.size/8)/3)
+	love.graphics.push()
+	love.graphics.translate(self.cx,self.cy)
+	util_draw_grid(self)
+	love.graphics.pop()
 	love.graphics.setStencilTest()
 	love.graphics.setColor(r, g, b, a)
 	love.graphics.rectangle("line", 0, 0, frame_w, frame_h)
 end
 
 function dm_draw_mini(self)
-	for i=1,self.h do
-		for j=1,self.w do
-			if self[i][j]==true then
-				love.graphics.points((j-1), (i-1))
-			end
-		end
-	end
+	love.graphics.draw(self.dots)
 	love.graphics.rectangle("line", -1, -1, self.w+1, self.h+1)
 end
 
