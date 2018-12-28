@@ -8,11 +8,16 @@ local UI ={
 	mini_x=1100,mini_y=10,
 }
 
+local white = {1,1,1,0.7}
+
 function love.load()
 	love.graphics.setBackgroundColor( 0x0a/0xff, 0x08/0xff, 0x06/0xff )
 	love.math.setRandomSeed( 6173420+love.timer.getTime( ) )
 	love.graphics.setLineWidth( 1 )
 	main_frame=dm:new(256,256)
+
+	gfont = love.graphics.newFont("font.ttf", 12)
+	love.graphics.setFont(gfont)
 	
 	btn00 = love.graphics.newImage("res/select_normal.png")
 	btn01 = love.graphics.newImage("res/select_hover.png")
@@ -24,14 +29,28 @@ end
 
 local slider_w= {value = 256, min = 16, max = 256, step = 16}
 local slider_h= {value = 256, min = 16, max = 256, step = 16}
-local chkLT = {text = "LT"}
-local chkLB = {text = "LB"}
-local chkRT = {text = "RT"}
-local chkRB = {text = "RB"}
-local chkHorizontal = {text = "Ho"}
-local chkVertical = {text = "Ve"}
-local chkLSB = {text = "LSB"}
-local chkMSB = {text = "MSB"}
+local slider_color = {
+	normal   = {bg = {0.73,0.73,0.73}, fg = {0.73,0.73,0.73}},
+	hovered  = {bg = {0.19,0.6,0.73}, fg = {1,1,1}},
+	active   = {bg = {1,0.6,0}, fg = {1,1,1}}
+}
+
+local chkLT = {text = "左上",checked = true}
+local chkLB = {text = "左下"}
+local chkRT = {text = "右上"}
+local chkRB = {text = "右下"}
+local chkb_group1 = {chkLT,chkLB,chkRT,chkRB}
+
+local chkVertical = {text = "纵向",checked = true}
+local chkHorizontal = {text = "横向"}
+local chkb_group2 = {chkVertical,chkHorizontal}
+
+local chkLSB = {text = "低位在前",checked = true}
+local chkMSB = {text = "高位在前"}
+local chkb_group3 = {chkLSB,chkMSB}
+
+local chkTrans = {text = "转置"}
+
 function love.update( dt )
 	UI.mini_x = love.graphics.getWidth()-main_frame.w-20
 	main_frame:setframesize(love.graphics.getWidth()-main_frame.w-80,love.graphics.getHeight()-UI.dm_y-30)
@@ -46,37 +65,35 @@ function love.update( dt )
 	suit.Button("btn4",{align = "center"},suit.layout:right(100,30))
 	suit.Button("btn5",{align = "center"},suit.layout:right(100,30))
 
-	suit.layout:down(100,10)
-	suit.layout:push(suit.layout:right(100,20))
-	suit.Checkbox(chkLT, {align='left'}, suit.layout:right(100,20))
-	suit.Checkbox(chkLB, {align='left'}, suit.layout:down(100,20))
-	suit.layout:pop()
+	local cbw = 50
+	local lx,ly,lw,lh = suit.layout:offset(30,10,cbw*2+0,20)
+	suit.Checkbox(chkLT, {align='left',radiogroup=chkb_group1}, lx,ly,cbw,lh)
+	suit.Checkbox(chkLB, {align='left',radiogroup=chkb_group1}, lx,ly+lh,cbw,lh)
+	suit.Checkbox(chkRT, {align='left',radiogroup=chkb_group1}, lx+cbw,ly,cbw,lh)
+	suit.Checkbox(chkRB, {align='left',radiogroup=chkb_group1}, lx+cbw,ly+lh,cbw,lh)
+	suit.Groupbox("起始位置", {color=white}, lx,ly,lw,lh*2)
 
-	suit.layout:push(suit.layout:right(100,20))
-	suit.Checkbox(chkRT, {align='left'}, suit.layout:right(100,20))
-	suit.Checkbox(chkRB, {align='left'}, suit.layout:down(100,20))
-	suit.layout:pop()
+	lx,ly,lw,lh = suit.layout:offset(20,0,cbw,20)
+	suit.Checkbox(chkVertical, {align='left',radiogroup=chkb_group2}, lx,ly,lw,lh)
+	suit.Checkbox(chkHorizontal, {align='left',radiogroup=chkb_group2}, lx,ly+lh,lw,lh)
+	suit.Groupbox("方向", {color=white}, lx,ly,lw,lh*2)
 
-	suit.layout:push(suit.layout:right(100,20))
-	suit.Checkbox(chkVertical, {align='left'}, suit.layout:right(100,20))
-	suit.Checkbox(chkHorizontal, {align='left'}, suit.layout:down(100,20))
-	suit.layout:pop()
+	lx,ly,lw,lh = suit.layout:offset(20,0,80,20)
+	suit.Checkbox(chkLSB, {align='left',radiogroup=chkb_group3}, lx,ly,lw,lh)
+	suit.Checkbox(chkMSB, {align='left',radiogroup=chkb_group3}, lx,ly+lh,lw,lh)
+	suit.Groupbox("位顺序", {color=white}, lx,ly,lw,lh*2)
 
-	suit.layout:push(suit.layout:right(100,20))
-	suit.Checkbox(chkLSB, {align='left'}, suit.layout:right(100,20))
-	suit.Checkbox(chkMSB, {align='left'}, suit.layout:down(100,20))
-	suit.layout:pop()
-
-
+	lx,ly,lw,lh = suit.layout:offset(20,0,60,20)
+	suit.Checkbox(chkTrans, {align='left'}, lx,ly,lw,lh)
 
 	suit.layout:reset(UI.dm_x-40,UI.dm_y+fh-256-16,10,15)
 	suit.Label(("%d"):format(slider_h.value),{align = "center"}, suit.layout:row(40,10))
 
 	suit.layout:reset(UI.dm_x-30,UI.dm_y+fh-256,10,15)
-	suit.Slider(slider_h,{vertical=true},suit.layout:row(16,256))
+	suit.Slider(slider_h,{vertical=true,color=slider_color},suit.layout:row(16,256))
 
 	suit.layout:reset(UI.dm_x+16,UI.dm_y+fh+10,15,10)
-	suit.Slider(slider_w,suit.layout:row(256,16))
+	suit.Slider(slider_w,{color=slider_color},suit.layout:row(256,16))
 	suit.Label(("%d"):format(slider_w.value),{align = "left"}, suit.layout:right(30,10))
 	main_frame:setdrawsize(slider_w.value,slider_h.value)
 end
