@@ -1,7 +1,7 @@
 
 local dm={}
 
-local dots={}
+-- local dots={}
 
 local default_size = 8
 local default_gap = 0

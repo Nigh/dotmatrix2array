@@ -1,6 +1,7 @@
 
 dm=require("dm")
 suit = require('SUIT')
+cg = require("carry_gen")
 local input = {text = ""}
 
 local UI ={
@@ -11,24 +12,18 @@ local UI ={
 local white = {1,1,1,0.7}
 
 function love.load()
-	love.graphics.setBackgroundColor( 0x0a/0xff, 0x08/0xff, 0x06/0xff )
+	love.graphics.setBackgroundColor( 40/0xff, 82/0xff, 121/0xff )
 	love.math.setRandomSeed( 6173420+love.timer.getTime( ) )
 	love.graphics.setLineWidth( 1 )
 	main_frame=dm:new(256,256)
 
 	gfont = love.graphics.newFont("font.ttf", 12)
 	love.graphics.setFont(gfont)
-	
-	btn00 = love.graphics.newImage("res/select_normal.png")
-	btn01 = love.graphics.newImage("res/select_hover.png")
-	btn02 = love.graphics.newImage("res/select_active.png")
-	btn10 = love.graphics.newImage("res/draw_normal.png")
-	btn11 = love.graphics.newImage("res/draw_hover.png")
-	btn12 = love.graphics.newImage("res/draw_active.png")
+	-- cg.generate(main_frame)
 end
 
-local slider_w= {value = 256, min = 16, max = 256, step = 16}
-local slider_h= {value = 256, min = 16, max = 256, step = 16}
+local slider_w= {value = 256, min = 4, max = 256, step = 16}
+local slider_h= {value = 256, min = 4, max = 256, step = 16}
 local slider_color = {
 	normal   = {bg = {0.73,0.73,0.73}, fg = {0.73,0.73,0.73}},
 	hovered  = {bg = {0.19,0.6,0.73}, fg = {1,1,1}},
@@ -49,6 +44,10 @@ local chkLSB = {text = "低位在前",checked = true}
 local chkMSB = {text = "高位在前"}
 local chkb_group3 = {chkLSB,chkMSB}
 
+local chkScanV = {text = "纵向",checked = true}
+local chkScanH = {text = "横向"}
+local chkb_group4 = {chkScanV,chkScanH}
+
 local chkTrans = {text = "转置"}
 
 function love.update( dt )
@@ -57,15 +56,32 @@ function love.update( dt )
 	local fw,fh = main_frame:getframesize()
 	suit.layout:reset(UI.dm_x,10,10,10)
 
-	suit.ImageButton(btn10, {align = "center",hovered = btn11,active = btn12}, suit.layout:right(100,30))
-	suit.ImageButton(btn00, {align = "center",hovered = btn01,active = btn02}, suit.layout:right(100,30))
-	suit.Button("btn1",{align = "center"},suit.layout:right(100,30))
-	suit.Button("btn2",{align = "center"},suit.layout:right(100,30))
-	suit.Button("btn3",{align = "center"},suit.layout:right(100,30))
-	suit.Button("btn4",{align = "center"},suit.layout:right(100,30))
-	suit.Button("btn5",{align = "center"},suit.layout:right(100,30))
+	suit.Button("绘制",{align = "center"},suit.layout:right(90,52))
+	suit.Button("选择",{align = "center"},suit.layout:right(90,52))
+	suit.Button("旋转",{align = "center"},suit.layout:right(90,52))
+	if suit.Button("裁切",{align = "center"},suit.layout:right(90,52)).hit then trim(main_frame) end
+	suit.Button("保存",{align = "center"},suit.layout:right(90,52))
+	suit.Button("读取",{align = "center"},suit.layout:right(90,52))	
+	if suit.Button("生成",{align = "center"},suit.layout:right(90,52)).hit then
+		local a,b,c,d
+		if chkLT.checked then a = 'lt' end
+		if chkLB.checked then a = 'lb' end
+		if chkRT.checked then a = 'rt' end
+		if chkRB.checked then a = 'rb' end
+		
+		if chkVertical.checked then b = 'v' end
+		if chkHorizontal.checked then b = 'h' end
+		
+		if chkScanV.checked then c = 'v' end
+		if chkScanH.checked then c = 'h' end
 
-	local cbw = 50
+		if chkLSB.checked then d = 'LSB' end
+		if chkMSB.checked then d = 'MSB' end
+		-- cg.generate(main_frame,'lt','v','h','LSB')
+		cg.generate(main_frame,a,b,c,d)
+	end
+
+	local cbw = 60
 	local lx,ly,lw,lh = suit.layout:offset(30,10,cbw*2+0,20)
 	suit.Checkbox(chkLT, {align='left',radiogroup=chkb_group1}, lx,ly,cbw,lh)
 	suit.Checkbox(chkLB, {align='left',radiogroup=chkb_group1}, lx,ly+lh,cbw,lh)
@@ -76,15 +92,21 @@ function love.update( dt )
 	lx,ly,lw,lh = suit.layout:offset(20,0,cbw,20)
 	suit.Checkbox(chkVertical, {align='left',radiogroup=chkb_group2}, lx,ly,lw,lh)
 	suit.Checkbox(chkHorizontal, {align='left',radiogroup=chkb_group2}, lx,ly+lh,lw,lh)
-	suit.Groupbox("方向", {color=white}, lx,ly,lw,lh*2)
+	suit.Groupbox("字节方向", {color=white}, lx,ly,lw,lh*2)
+
+	lx,ly,lw,lh = suit.layout:offset(20,0,cbw,20)
+	suit.Checkbox(chkScanV, {align='left',radiogroup=chkb_group4}, lx,ly,lw,lh)
+	suit.Checkbox(chkScanH, {align='left',radiogroup=chkb_group4}, lx,ly+lh,lw,lh)
+	suit.Groupbox("扫描方向", {color=white}, lx,ly,lw,lh*2)
 
 	lx,ly,lw,lh = suit.layout:offset(20,0,80,20)
 	suit.Checkbox(chkLSB, {align='left',radiogroup=chkb_group3}, lx,ly,lw,lh)
 	suit.Checkbox(chkMSB, {align='left',radiogroup=chkb_group3}, lx,ly+lh,lw,lh)
 	suit.Groupbox("位顺序", {color=white}, lx,ly,lw,lh*2)
 
-	lx,ly,lw,lh = suit.layout:offset(20,0,60,20)
-	suit.Checkbox(chkTrans, {align='left'}, lx,ly,lw,lh)
+	-- lx,ly,lw,lh = suit.layout:offset(20,0,60,20)
+	-- suit.Checkbox(chkTrans, {align='left'}, lx,ly,lw,lh)
+	-- suit.Groupbox("转置", {color=white}, lx,ly,lw,lh)
 
 	suit.layout:reset(UI.dm_x-40,UI.dm_y+fh-256-16,10,15)
 	suit.Label(("%d"):format(slider_h.value),{align = "center"}, suit.layout:row(40,10))
@@ -95,6 +117,8 @@ function love.update( dt )
 	suit.layout:reset(UI.dm_x+16,UI.dm_y+fh+10,15,10)
 	suit.Slider(slider_w,{color=slider_color},suit.layout:row(256,16))
 	suit.Label(("%d"):format(slider_w.value),{align = "left"}, suit.layout:right(30,10))
+	slider_w.value = math.ceil(slider_w.value)
+	slider_h.value = math.ceil(slider_h.value)
 	main_frame:setdrawsize(slider_w.value,slider_h.value)
 end
 
@@ -221,4 +245,31 @@ end
 
 function love.quit()
     return false
+end
+
+function trim(dm)
+	local _=false
+	for i=dm.h,1,-1 do
+		for j=1,dm.w do
+			if main_frame[i][j] then
+				slider_h.value = i>slider_h.min and i or slider_h.min
+				_ = true
+				break
+			end
+		end
+		if _ then break end
+	end
+
+	_=false
+	for j=dm.w,1,-1 do
+		for i=1,dm.h do
+			if main_frame[i][j] then
+				slider_w.value = j>slider_w.min and j or slider_w.min
+				_ = true
+				break
+			end
+		end
+		if _ then break end
+	end
+
 end
