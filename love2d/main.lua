@@ -112,10 +112,10 @@ function love.update( dt )
 	suit.Label(("%d"):format(slider_h.value),{align = "center"}, suit.layout:row(40,10))
 
 	suit.layout:reset(UI.dm_x-30,UI.dm_y+fh-256,10,15)
-	suit.Slider(slider_h,{vertical=true,color=slider_color},suit.layout:row(16,256))
+	size_h = suit.Slider(slider_h,{vertical=true,color=slider_color},suit.layout:row(16,256))
 
 	suit.layout:reset(UI.dm_x+16,UI.dm_y+fh+10,15,10)
-	suit.Slider(slider_w,{color=slider_color},suit.layout:row(256,16))
+	size_w = suit.Slider(slider_w,{color=slider_color},suit.layout:row(256,16))
 	suit.Label(("%d"):format(slider_w.value),{align = "left"}, suit.layout:right(30,10))
 	slider_w.value = math.ceil(slider_w.value)
 	slider_h.value = math.ceil(slider_h.value)
@@ -240,6 +240,14 @@ function love.wheelmoved(x, y)
 		main_frame.cx = (main_frame.cx - mx)*k + mx
 		main_frame.cy = (main_frame.cy - my)*k + my
 		update_draw = true
+	end
+	if size_h.hovered then
+		local _ = math.ceil(slider_h.value+y)
+		slider_h.value = math.min(math.max( _,slider_h.min ),slider_h.max)
+	end
+	if size_w.hovered then
+		local _ = math.ceil(slider_w.value+y)
+		slider_w.value = math.min(math.max( _,slider_w.min ),slider_w.max)
 	end
 end
 
