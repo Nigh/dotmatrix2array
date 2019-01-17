@@ -65,7 +65,11 @@ function get_byte_arr( dm,start,bvh,lsb )
                 end
             end
             if hscan>0 then
-                hscan = 0
+                if lsb=='MSB' then
+                    x = bit.lshift(x, 8-hscan)
+                else
+                    x = bit.rshift(x, 8-hscan)
+                end
                 table.insert( byte_arr, x )
             end
         end
@@ -74,7 +78,7 @@ function get_byte_arr( dm,start,bvh,lsb )
             local hscan,x=0,0
             for i=i0,i1,i2 do
                 hscan = hscan+1
-                if lsb=='LSB' then
+                if lsb=='MSB' then
                     x = bit.lshift(x, 1)
                     x = bit.bor(x , dm[j][i] and 0x01 or 0x00)
                 else
@@ -88,7 +92,11 @@ function get_byte_arr( dm,start,bvh,lsb )
                 end
             end
             if hscan>0 then
-                hscan = 0
+                if lsb=='MSB' then
+                    x = bit.lshift(x, 8-hscan)
+                else
+                    x = bit.rshift(x, 8-hscan)
+                end
                 table.insert( byte_arr, x )
             end
         end
@@ -110,13 +118,13 @@ function get_final_arr( w,h,byte_arr,bvh,svh )
     if bvh==svh then
         fw,fh=w,h
         for i,v in ipairs(byte_arr) do
-            if i%fw==1 then
+            if i%fw==1 or i==1 then
                 table.insert( final_arr,{} )
             end
             table.insert( final_arr[#final_arr],v )
         end
     else
-        print(w,h)
+        -- print(w,h)
         fw,fh=h,w
         for i=1,fh do
             table.insert( final_arr,{} )
